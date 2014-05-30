@@ -1,7 +1,7 @@
 <?php
 
 define('HEATERD_HOST', 'localhost');
-define('HEATERD_PORT', '7396');
+define('HEATERD_PORT', '7397');
 
 function heaterd_get() {
 
@@ -13,7 +13,7 @@ function heaterd_get() {
 
 	fwrite($fp, "get\n");
 
-	return fread($fp, 10);
+	return (fread($fp, 10) === "true\n" ? true : false);
 }
 
 function heaterd_on() {

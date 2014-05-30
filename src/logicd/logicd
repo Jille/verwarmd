@@ -5,34 +5,107 @@
  *	Runs a daemon that evaluates the state of business every minute
  */
 
+// debug mode
+define('DEBUG', true);
+
+
 include('../common/log.class.php');
-include('../common/tempd_client.php');
-include('../common/heaterd_client.php');
+
+if(DEBUG) {
+	include('../common/tempd_client_stub.php');
+	include('../common/heaterd_client_stub.php');
+} else {
+	include('../common/tempd_client.php');
+	include('../common/heaterd_client.php');
+}
 
 define('TIMEOUT', 1); // Timeout in seconds
 //define('LOGFILE', '/var/log/verwarmd/logic.log');
 define('LOGFILE', '../tmplog/logic.log');
-define('MAX_TEMP', 30);
+define('MAX_TEMP', 25);
+define('INACTIVE_TEMP', 14);
+define('INTERVAL', 5); // heating interval per second
 
+define('MODE_INACTIVE', 2);
+define('MODE_ACTIVE', 3);
 
 $log = new Log(LOGFILE);
 
 $log->log('Started logicd');
 
+
+// Define initial state
 $state = array(
 	'cur_temp' => 0,
 	'cur_state' => 0,
-	'target_temp' => 0
+	'mode' => MODE_INACTIVE,
+	'last_on' => 0,
+	'last_off' => 0,
+	'active_until' => 0
 );
+
+// debug
+
+$state['mode'] = MODE_ACTIVE;
+$state['active_until'] = time() + 20;
 
 while(true) {
 
 	$state['cur_temp'] = tempd_get_temperature();
 	$state['cur_state'] = heaterd_get();
 
-	$log->log('Current temperature: '.$state['cur_temp']);
-	$log->log('Current state: '.$state['cur_state']);
+	$log->log('Current state: temp '.$state['cur_temp'].', state: '.($state['cur_state'] === true ? 'on' : 'off'));
 
+	if(($state['mode'] === MODE_ACTIVE) && ($state['active_until'] <= time())) {
+		$state['mode'] = MODE_INACTIVE;
+
+		if($state['cur_state'] === true) {
+			heaterd_off();
+			$state['cur_state'] = false;
+			$state['last_off'] = time();
+			$log->log('Heater turned off. Reason: not in active mode anymore');
+		}
+	}
+
+	// Enforce inactive mode
+	if($state['mode'] == MODE_INACTIVE) {
+
+		// If heater has been on for INTERVAL seconds, turn off
+		if(($state['cur_state'] === true) && ((time() - $state['last_on']) > INTERVAL)) {
+			heaterd_off();
+			$state['last_off'] = time();
+			$log->log('Heater turned off. Reason: on for '.(time() - $state['last_on']).' seconds');
+		}
+
+		/// If temperature below INACTIVE_TEMP and heater has been off for INTERVAL, turn on
+		if(($state['cur_temp'] < INACTIVE_TEMP) &&
+			($state['cur_state'] === false) &&
+			((time() - $state['last_off']) > INTERVAL))
+		{
+			heaterd_on();
+			$state['last_on'] = time();
+			$log->log('Heater turned on. Reason: below minimum temperature');
+		}
+	} else { // Enforce active temperature
+
+		// If heater on and above MAX_TEMP, turn off
+		if(($state['cur_state'] === true) && ($state['cur_temp'] >= MAX_TEMP)) {
+			heaterd_off();
+			$state['last_off'] = time();
+			$log->log('Heater turned off. Reason: too hot');
+		}
+
+		// if heater off, and below MAX_TEMP, and more than INTERVAL/2 to go
+		if(($state['cur_state'] === false) &&
+			($state['cur_temp'] < MAX_TEMP) &&
+			($state['active_until'] > (time() - (INTERVAL/2))))
+		{
+			heaterd_on();
+			$state['last_on'] = time();
+			$log->log('Heater turned on. Reason: Active mode for '.($state['active_until'] - time()).' seconds'); // TODO until
+		}
+
+	}
 
 	sleep(TIMEOUT);
 }

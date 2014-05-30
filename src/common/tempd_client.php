@@ -10,5 +10,5 @@ function tempd_get_temperature() {
 		throw new Exception('Cannot read from tempd ('.TEMPD_HOST.':'.TEMPD_PORT.')');
 	}
 
-	return floatval(fread($fp));
+	return floatval(fread($fp, 10));
 }
