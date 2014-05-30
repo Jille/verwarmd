@@ -70,6 +70,7 @@
 						heater_disable();
 						$GLOBALS['autoDisableTimer'] = NULL;
 					});
+					$conn->end("true\n");
 					break;
 				case 'off':
 					if($GLOBALS['autoDisableTimer']) {
@@ -78,6 +79,7 @@
 					}
 					$GLOBALS['log']->log('heater disable request');
 					heater_disable();
+					$conn->end("true\n");
 					break;
 				case 'get':
 					$conn->end(json_encode($GLOBALS['autoDisableTimer'] !== NULL) ."\n");
