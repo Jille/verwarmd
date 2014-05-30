@@ -1,10 +1,39 @@
 <?php
+	function exception_error_handler($errno, $errstr, $errfile, $errline ) {
+		throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
+	}
+	set_error_handler("exception_error_handler");
+
 	require __DIR__.'/vendor/autoload.php';
 
 	class Log { function log($data) { echo $data ."\n"; } }
 
 	define('GPIO_ON_PORT', 2);
 	define('GPIO_OFF_PORT', 0);
+
+	function my_exec($cmd) {
+		$descr = array(
+			0 => array('file', '/dev/null', 'r'),
+			1 => array('file', '/var/log/ekroll/gpio.log', 'w'),
+			2 => array('file', '/var/log/ekroll/gpio.log', 'w'),
+		);
+		$ph = proc_open($cmd, $descr, $pipes);
+		$status = proc_close($ph);
+		var_dump($status);
+		if(pcntl_wifexited($status)) {
+			if(pcntl_wexitstatus($status) == 0) {
+				return true;
+			}
+			$GLOBALS['log']->log($cmd .' exited with exitcode '. pcntl_wexitstatus($status));
+			return false;
+		} elseif(pcntl_wifsignaled($status)) {
+			$GLOBALS['log']->log($cmd .' was killed by signal '. pcntl_wtermsig($status));
+			return false;
+		} else {
+			$GLOBALS['log']->log($cmd .' died unexpectedly');
+			return false;
+		}
+	}
 
 	function heater_enable() {
 		my_exec('gpio write '. GPIO_ON_PORT .' 1');
@@ -32,11 +61,11 @@
 	$socket = new React\Socket\Server($loop);
 	$socket->on('connection', function($conn) {
 		$conn->on('data', function($data, $conn) {
-			switch($data) {
+			switch(trim($data)) {
 				case 'on':
 					$GLOBALS['log']->log('heater enable request');
 					heater_enable();
-					$GLOBALS['autoDisableTimer'] = $loop->addTimer(1800, function() {
+					$GLOBALS['autoDisableTimer'] = $GLOBALS['loop']->addTimer(1800, function() {
 						$GLOBALS['log']->log('heater disabled due to timeout');
 						heater_disable();
 						$GLOBALS['autoDisableTimer'] = NULL;
@@ -44,18 +73,18 @@
 					break;
 				case 'off':
 					if($GLOBALS['autoDisableTimer']) {
-						$loop->cancelTimer($GLOBALS['autoDisableTimer']);
+						$GLOBALS['loop']->cancelTimer($GLOBALS['autoDisableTimer']);
 						$GLOBALS['autoDisableTimer'] = NULL;
 					}
 					$GLOBALS['log']->log('heater disable request');
 					heater_disable();
 					break;
 				case 'get':
-					$conn->end(json_encode($GLOBALS['autoDisableTimer'] !== NULL));
+					$conn->end(json_encode($GLOBALS['autoDisableTimer'] !== NULL) ."\n");
 					break;
 				default:
 					var_dump($data);
-					$conn->close();
+					$conn->end("zaad\n");
 			}
 		});
 	});
