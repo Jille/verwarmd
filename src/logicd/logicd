@@ -31,6 +31,7 @@ while(true) {
 	$state['cur_state'] = heaterd_get();
 
 	$log->log('Current temperature: '.$state['cur_temp']);
+	$log->log('Current state: '.$state['cur_state']);
 
 
 	sleep(TIMEOUT);
