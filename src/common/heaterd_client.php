@@ -13,7 +13,7 @@ function heaterd_get() {
 
 	fwrite($fp, "get\n");
 
-	return fread($fp);
+	return fread($fp, 10);
 }
 
 function heaterd_on() {
