@@ -10,9 +10,13 @@
 	}
 	switch($_GET['action']) {
 		case 'getTemperatures':
-			$sock = stream_socket_client('tcp://127.0.0.1:7396');
-			$current = floatval(fgets($sock));
-			fclose($sock);
+			$current = NULL;
+			if($sock = stream_socket_client('tcp://127.0.0.1:7396')) {
+				if($line = fgets($sock)) {
+					$current = floatval($line);
+				}
+				fclose($sock);
+			}
 			$activeTill = intval(file_get_contents('/var/log/ekroll/activeTill.dat'));
 			$active = intval(file_get_contents('/var/log/ekroll/active.dat'));
 			$inactive = intval(file_get_contents('/var/log/ekroll/inactive.dat'));
