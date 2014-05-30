@@ -6,7 +6,7 @@ class Log {
 
 	public function __construct($log_file) {
 		if(!is_dir(dirname($log_file))) { 
-			mkdir(dirname($log_file), 0777, true);
+			mkdir(dirname($log_file), 0775, true);
 		}
 
 		$this->fp = fopen($log_file, 'a');
