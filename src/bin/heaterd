@@ -1,12 +1,12 @@
+#!/usr/bin/env php
 <?php
 	function exception_error_handler($errno, $errstr, $errfile, $errline ) {
 		throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
 	}
 	set_error_handler("exception_error_handler");
 
-	require __DIR__.'/vendor/autoload.php';
-
-	class Log { function log($data) { echo $data ."\n"; } }
+	require_once('../vendor/autoload.php');
+	require_once('../common/log.class.php');
 
 	define('GPIO_ON_PORT', 2);
 	define('GPIO_OFF_PORT', 0);
