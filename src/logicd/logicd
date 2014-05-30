@@ -26,9 +26,9 @@ $state = array(
 
 while(true) {
 
-	$state->cur_temp = tempd_get_temperature();
+	$state['cur_temp'] = tempd_get_temperature();
 
-	$log->log('Current temperature: '.$state->cur_temp);
+	$log->log('Current temperature: '.$state['cur_temp']);
 
 
 	sleep(TIMEOUT);
