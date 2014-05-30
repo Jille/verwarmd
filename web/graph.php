@@ -82,7 +82,7 @@
 
 	function fetch_data() {
 		global $temps, $heater, $aspired;
-		$lines = parse_stamped_file('/var/log/ekroll/temp.log');
+		$lines = parse_stamped_file('/var/log/verwarmd/temp.log');
 		foreach($lines as $m) {
 			$temps[$m[1]] = $m[2];
 			$aspired[$m[1]] = $m[3];
@@ -90,7 +90,7 @@
 		}
 
 /*
-		$lines = parse_stamped_file('/var/log/ekroll/actions.log');
+		$lines = parse_stamped_file('/var/log/verwarmd/actions.log');
 		foreach($lines as $m) {
 			switch(substr($m[2], 0, 6)) {
 				case 'aspire':

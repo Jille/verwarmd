@@ -17,9 +17,9 @@
 				}
 				fclose($sock);
 			}
-			$activeTill = intval(file_get_contents('/var/log/ekroll/activeTill.dat'));
-			$active = intval(file_get_contents('/var/log/ekroll/active.dat'));
-			$inactive = intval(file_get_contents('/var/log/ekroll/inactive.dat'));
+			$activeTill = intval(file_get_contents('/var/log/verwarmd/activeTill.dat'));
+			$active = intval(file_get_contents('/var/log/verwarmd/active.dat'));
+			$inactive = intval(file_get_contents('/var/log/verwarmd/inactive.dat'));
 			if($activeTill > time()) {
 				$aspired = $active;
 			} else {
@@ -36,14 +36,14 @@
 				fail(400, "Param temperature out of range");
 			}
 			if($_GET['action'] == 'setActiveTemperature') {
-				file_put_contents('/var/log/ekroll/active.dat', $_GET['temperature']);
+				file_put_contents('/var/log/verwarmd/active.dat', $_GET['temperature']);
 			} else {
-				file_put_contents('/var/log/ekroll/inactive.dat', $_GET['temperature']);
+				file_put_contents('/var/log/verwarmd/inactive.dat', $_GET['temperature']);
 			}
 			echo json_encode(array('success' => true));
 			exit;
 		case 'enableInactive':
-			file_put_contents('/var/log/ekroll/activeTill.dat', time());
+			file_put_contents('/var/log/verwarmd/activeTill.dat', time());
 			echo json_encode(array('success' => true, 'affected' => true));
 			exit;
 		case 'enableActiveTill':
@@ -53,17 +53,17 @@
 			if($_GET['timestamp'] < time() || $_GET['timestamp'] > time() + 86400) {
 				fail(400, "Param timestamp out of range");
 			}
-			$ts = intval(file_get_contents('/var/log/ekroll/activeTill.dat'));
+			$ts = intval(file_get_contents('/var/log/verwarmd/activeTill.dat'));
 			$affected = false;
 			if($_GET['timestamp'] > $ts) {
-				file_put_contents('/var/log/ekroll/activeTill.dat', $_GET['timestamp']);
+				file_put_contents('/var/log/verwarmd/activeTill.dat', $_GET['timestamp']);
 				$affected = true;
 				$ts = $_GET['timestamp'];
 			}
 			echo json_encode(array('success' => true, 'affected' => $affected, 'till' => $ts));
 			exit;
 		case 'getActiveTill':
-			$ret = intval(file_get_contents('/var/log/ekroll/activeTill.dat'));
+			$ret = intval(file_get_contents('/var/log/verwarmd/activeTill.dat'));
 			echo json_encode(array('success' => true, 'till' => json_decode($ret)));
 			exit;
 		default:

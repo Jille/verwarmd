@@ -11,12 +11,12 @@
 
 	$loop = React\EventLoop\Factory::create();
 
-	$log = new Log('/var/log/ekroll/pcsensor.log');
+	$log = new Log('/var/log/verwarmd/pcsensor.log');
 
 	$descr = array(
 		0 => array('file', '/dev/null', 'r'),
 		1 => array('pipe', 'w'),
-		2 => array('file', '/var/log/ekroll/pcsensor.log', 'w'),
+		2 => array('file', '/var/log/verwarmd/pcsensor.log', 'w'),
 	);
 	
 	$ph = proc_open('/usr/local/bin/pcsensor -c -l10', $descr, $pipes);

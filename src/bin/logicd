@@ -35,7 +35,7 @@ $log = new Log(LOGFILE);
 
 $log->log('Started logicd');
 
-$tlog = fopen('/var/log/ekroll/temp.log', 'a');
+$tlog = fopen('/var/log/verwarmd/temp.log', 'a');
 
 // Define initial state
 $state = array(
