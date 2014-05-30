@@ -19,7 +19,7 @@
 		2 => array('file', '/var/log/ekroll/pcsensor.log', 'w'),
 	);
 	
-	$ph = proc_open('./pcsensor -c -l10', $descr, $pipes);
+	$ph = proc_open('/usr/local/bin/pcsensor -c -l10', $descr, $pipes);
 	$pcsensor = new React\Stream\Stream($pipes[1], $loop);
 	$pcsensor->on('data', function($data, $stream) {
 		global $temp, $log;
