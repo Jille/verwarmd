@@ -1,5 +1,5 @@
 <?php
-	$timespan = 3600;
+	$timespan = 24*3600;
 	$width = 600;
 	$height = 200;
 	$now = time();
