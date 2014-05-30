@@ -8,6 +8,12 @@
 // debug mode
 define('DEBUG', true);
 
+define('TIMEOUT', 60); // Timeout in seconds
+define('LOGFILE', '/var/log/verwarmd/logic.log');
+define('MAX_TEMP', 25);
+define('INACTIVE_TEMP', 14);
+define('INTERVAL', 20*60); // heating interval per second
+
 
 include('../common/log.class.php');
 
@@ -19,12 +25,11 @@ if(DEBUG) {
 	include('../common/heaterd_client.php');
 }
 
-define('TIMEOUT', 1); // Timeout in seconds
-//define('LOGFILE', '/var/log/verwarmd/logic.log');
-define('LOGFILE', '../tmplog/logic.log');
-define('MAX_TEMP', 25);
-define('INACTIVE_TEMP', 14);
-define('INTERVAL', 5); // heating interval per second
+if(DEBUG) {
+	define('TIMEOUT', 1); // Timeout in seconds
+	define('LOGFILE', '../tmplog/logic.log');
+	define('INTERVAL', 5); // heating interval per second
+}
 
 define('MODE_INACTIVE', 2);
 define('MODE_ACTIVE', 3);
