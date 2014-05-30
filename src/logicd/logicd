@@ -20,9 +20,8 @@ $log = new Log(LOGFILE);
 $log->log('Started logicd');
 
 $state = array(
-	'cur_temp' = 0;
-	'target_temp' = 0;
-
+	'cur_temp' = 0,
+	'target_temp' = 0
 );
 
 while(true) {
