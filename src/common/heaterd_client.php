@@ -3,7 +3,7 @@
 define('HEATERD_HOST', 'localhost');
 define('HEATERD_PORT', '7396');
 
-function heaterd_get_state() {
+function heaterd_get() {
 
 	$fp = fsockopen(HEATERD_HOST, HEATERD_PORT);
 	
