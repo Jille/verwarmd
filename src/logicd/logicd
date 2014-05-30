@@ -16,7 +16,7 @@ if(DEBUG) {
 	include('../common/tempd_client_stub.php');
 	include('../common/heaterd_client_stub.php');
 } else {
-	define('TIMEOUT', 60); // Timeout in seconds
+	define('TIMEOUT', 10); // Timeout in seconds
 	define('LOGFILE', '/var/log/verwarmd/logic.log');
 	define('INTERVAL', 20*60); // heating interval per second
 	
@@ -35,6 +35,7 @@ $log = new Log(LOGFILE);
 
 $log->log('Started logicd');
 
+$tlog = fopen('/var/log/ekroll/temp.log', 'a');
 
 // Define initial state
 $state = array(
@@ -109,5 +110,6 @@ while(true) {
 
 	}
 
+	fwrite($tlog, time() .' '. $state['cur_temp'] .' '. ($state['mode'] == MODE_ACTIVE ? MAX_TEMP : INACTIVE_TEMP) .' '. intval($state['cur_state']) ."\n");
 	sleep(TIMEOUT);
 }
