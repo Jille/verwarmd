@@ -43,8 +43,9 @@
 			echo json_encode(array('success' => true));
 			exit;
 		case 'enableInactive':
-			$_GET['timestamp'] = time();
-			// FALLTHROUGH
+			file_put_contents('/var/log/ekroll/activeTill.dat', time());
+			echo json_encode(array('success' => true, 'affected' => true));
+			exit;
 		case 'enableActiveTill':
 			if(!isset($_GET['timestamp']) && !ctype_digit($_GET['timestamp'])) {
 				fail(400, "Invalid timestamp given");
@@ -52,9 +53,15 @@
 			if($_GET['timestamp'] < time() || $_GET['timestamp'] > time() + 86400) {
 				fail(400, "Param timestamp out of range");
 			}
-			file_put_contents('/var/log/ekroll/activeTill.dat', $_GET['timestamp']);
-			echo json_encode(array('success' => true));
-			break;
+			$ts = intval(file_get_contents('/var/log/ekroll/activeTill.dat'));
+			$affected = false;
+			if($_GET['timestamp'] > $ts) {
+				file_put_contents('/var/log/ekroll/activeTill.dat', $_GET['timestamp']);
+				$affected = true;
+				$ts = $_GET['timestamp'];
+			}
+			echo json_encode(array('success' => true, 'affected' => $affected, 'till' => $ts));
+			exit;
 		case 'getActiveTill':
 			$ret = intval(file_get_contents('/var/log/ekroll/activeTill.dat'));
 			echo json_encode(array('success' => true, 'till' => json_decode($ret)));
