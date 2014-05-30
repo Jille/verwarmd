@@ -7,12 +7,12 @@
 
 include('../common/log.class.php');
 include('../common/tempd_client.php');
-//include('../common/heaterd_client.php');
+include('../common/heaterd_client.php');
 
 define('TIMEOUT', 1); // Timeout in seconds
 //define('LOGFILE', '/var/log/verwarmd/logic.log');
 define('LOGFILE', '../tmplog/logic.log');
-
+define('MAX_TEMP', 30);
 
 
 $log = new Log(LOGFILE);
@@ -21,12 +21,14 @@ $log->log('Started logicd');
 
 $state = array(
 	'cur_temp' => 0,
+	'cur_state' => 0,
 	'target_temp' => 0
 );
 
 while(true) {
 
 	$state['cur_temp'] = tempd_get_temperature();
+	$state['cur_state'] = heaterd_get();
 
 	$log->log('Current temperature: '.$state['cur_temp']);
 
