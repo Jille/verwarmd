@@ -6,7 +6,7 @@ FIRSTFAIL=0
 while :; do
 	echo -n "Starting $@ at " >> /var/log/verwarmd/wrapper.log
 	date "+%x %X" >> /var/log/verwarmd/wrapper.log
-	"$@" 2>&1 >> /var/log/verwarmd/wrapper.log
+	"$@" >> /var/log/verwarmd/wrapper.log 2>&1
 	NOW=`date +%s`
 	cat /var/log/verwarmd/wrapper.log | sendmail root
 	if [ "$(($NOW-3600))" -gt "$FIRSTFAIL" ]; then
