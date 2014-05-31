@@ -12,13 +12,15 @@ if(DEBUG) {
 	define('TIMEOUT', 1); // Timeout in seconds
 	define('LOGFILE', '../tmplog/logic.log');
 	define('INTERVAL', 5); // heating interval per second
-	
+	define('ACTIVE_TILL_FILE', '../tmplog/activeTill.dat');
+
 	include('../common/tempd_client_stub.php');
 	include('../common/heaterd_client_stub.php');
 } else {
 	define('TIMEOUT', 10); // Timeout in seconds
 	define('LOGFILE', '/var/log/verwarmd/logic.log');
 	define('INTERVAL', 20*60); // heating interval per second
+	define('ACTIVE_TILL_FILE', '/var/log/verwarmd/activeTill.dat');
 	
 	include('../common/tempd_client.php');
 	include('../common/heaterd_client.php');
@@ -26,8 +28,8 @@ if(DEBUG) {
 
 define('INACTIVE_TEMP', 14);
 define('MAX_TEMP', 25);
-define('MODE_INACTIVE', 2);
-define('MODE_ACTIVE', 3);
+define('MODE_INACTIVE', 'inactive');
+define('MODE_ACTIVE', 'active');
 
 include('../common/log.class.php');
 
@@ -47,17 +49,16 @@ $state = array(
 	'active_until' => 0
 );
 
-// debug
-
-$state['mode'] = MODE_ACTIVE;
-$state['active_until'] = time() + 20;
-
 while(true) {
 
 	$state['cur_temp'] = tempd_get_temperature();
 	$state['cur_state'] = heaterd_get();
 
-	$log->log('Current state: temp '.$state['cur_temp'].', state: '.($state['cur_state'] === true ? 'on' : 'off'));
+	$state['active_until'] = intval(trim(file_get_contents(ACTIVE_TILL_FILE)));
+
+	$state['mode'] = (($state['active_until'] > time()) ? MODE_ACTIVE : MODE_INACTIVE);
+
+	$log->log('Current state: temp '.$state['cur_temp'].', state: '.($state['cur_state'] === true ? 'on' : 'off').', mode: '.$state['mode']);
 
 	if(($state['mode'] === MODE_ACTIVE) && ($state['active_until'] <= time())) {
 		$state['mode'] = MODE_INACTIVE;
@@ -98,10 +99,10 @@ while(true) {
 			$log->log('Heater turned off. Reason: too hot');
 		}
 
-		// if heater off, and below MAX_TEMP, and more than INTERVAL/2 to go
+		// if heater off, and below MAX_TEMP
 		if(($state['cur_state'] === false) &&
 			($state['cur_temp'] < MAX_TEMP) &&
-			($state['active_until'] > (time() - (INTERVAL/2))))
+			($state['active_until'] > time()))
 		{
 			heaterd_on();
 			$state['last_on'] = time();
