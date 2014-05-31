@@ -6,7 +6,7 @@
  */
 
 // debug mode
-define('DEBUG', true);
+define('DEBUG', false);
 
 if(DEBUG) {
 	define('TIMEOUT', 1); // Timeout in seconds
