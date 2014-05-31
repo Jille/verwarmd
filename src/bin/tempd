@@ -23,7 +23,6 @@
 	$pcsensor = new React\Stream\Stream($pipes[1], $loop);
 	$pcsensor->on('data', function($data, $stream) {
 		global $temp, $log;
-		var_dump($data);
 		if($data === '') {
 			return;
 		}
