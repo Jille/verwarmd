@@ -1,0 +1,33 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+# Print the IP address
+_IP=$(hostname -I) || true
+if [ "$_IP" ]; then
+  printf "My IP address is %s\n" "$_IP"
+fi
+
+echo "I am booted!" | sendmail root 
+
+cd /home/verwarmd/verwarmd/src/bin/
+#sudo -u verwarmd sh wrapper.sh php ekrolld.php &
+#sudo -u verwarmd sh wrapper.sh php manager.php &
+
+sudo -u verwarmd ./wrapper ./tempd &
+sleep 1
+sudo -u verwarmd ./wrapper ./heaterd &
+sleep 5
+sudo -u verwarmd ./wrapper ./logicd &
+ping -i 10 10.4.0.2 &
+
+exit 0
