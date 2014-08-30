@@ -9,18 +9,20 @@
 define('DEBUG', false);
 
 if(DEBUG) {
-	define('TIMEOUT', 1); // Timeout in seconds
+	define('TIMEOUT', 5); // Timeout in seconds
 	define('LOGFILE', '../tmplog/logic.log');
 	define('INTERVAL', 5); // heating interval per second
 	define('ACTIVE_TILL_FILE', '../tmplog/activeTill.dat');
+	define('TEMPLOG', '../tmplog/temp.log');
 
 	include('../common/tempd_client_stub.php');
 	include('../common/heaterd_client_stub.php');
 } else {
-	define('TIMEOUT', 10); // Timeout in seconds
+	define('TIMEOUT', 60); // Timeout in seconds
 	define('LOGFILE', '/var/log/verwarmd/logic.log');
 	define('INTERVAL', 20*60); // heating interval per second
 	define('ACTIVE_TILL_FILE', '/var/log/verwarmd/activeTill.dat');
+	define('TEMPLOG', '/var/log/verwarmd/temp.log');
 	
 	include('../common/tempd_client.php');
 	include('../common/heaterd_client.php');
@@ -32,12 +34,11 @@ define('MODE_INACTIVE', 'inactive');
 define('MODE_ACTIVE', 'active');
 
 include('../common/log.class.php');
+include('../common/external_temp.php');
 
 $log = new Log(LOGFILE);
 
 $log->log('Started logicd');
-
-$tlog = fopen('/var/log/verwarmd/temp.log', 'a');
 
 // Define initial state
 $state = array(
@@ -50,6 +51,8 @@ $state = array(
 );
 
 while(true) {
+
+	$next_wakeup = time() + TIMEOUT;
 
 	$state['cur_temp'] = tempd_get_temperature();
 	$state['cur_state'] = heaterd_get();
@@ -111,6 +114,17 @@ while(true) {
 
 	}
 
-	fwrite($tlog, time() .' '. $state['cur_temp'] .' '. ($state['mode'] == MODE_ACTIVE ? MAX_TEMP : INACTIVE_TEMP) .' '. intval($state['cur_state']) ."\n");
-	sleep(TIMEOUT);
+	$externaltemp = get_external_temp($log);
+
+	// Log data for graphs
+	$tlog = fopen(TEMPLOG, 'a');
+	fwrite($tlog, time() .' '. $state['cur_temp'] .' '. ($state['mode'] == MODE_ACTIVE ? MAX_TEMP : INACTIVE_TEMP) .' '. intval($state['cur_state']) . ' '. $externaltemp ."\n");
+	fclose($tlog);
+
+	if(($next_wakeup - time()) <= 0) {
+		$log->log('Skipped a beat??');
+		$next_wakeup += TIMEOUT;
+	}
+
+	sleep($next_wakeup - time());
 }
