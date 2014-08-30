@@ -19,7 +19,7 @@
 		);
 		$ph = proc_open($cmd, $descr, $pipes);
 		$status = proc_close($ph);
-		var_dump($status);
+		
 		if(pcntl_wifexited($status)) {
 			if(pcntl_wexitstatus($status) == 0) {
 				return true;
@@ -86,7 +86,7 @@
 					break;
 				default:
 					var_dump($data);
-					$conn->end("zaad\n");
+					$conn->end("error\n");
 			}
 		});
 	});
